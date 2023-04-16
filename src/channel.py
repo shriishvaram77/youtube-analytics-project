@@ -1,22 +1,28 @@
 import json
 import os
 
-from dotenv import load_dotenv
 from googleapiclient.discovery import build
 
+from dotenv import load_dotenv
 from settings import ENV_FILE
-
 load_dotenv(ENV_FILE)
 
 
 class Channel:
     """Класс для ютуб-канала"""
     api_key: str = os.getenv('API_KEY')
+    youtube = build('youtube', 'v3', developerKey=api_key)
 
     def __init__(self, channel_id: str) -> None:
         """Экземпляр инициализируется id канала. Дальше все данные будут подтягиваться по API."""
         self.channel_id = channel_id
-        self.youtube = build('youtube', 'v3', developerKey=self.api_key)
+        self.channel = self.youtube.channels().list(id=channel_id, part='snippet,statistics').execute()
+        self.title = self.channel['items'][0]['snippet']['title']
+        self.description = self.channel['items'][0]['snippet']['description']
+        self.url = f"https://www.youtube.com/channel/{channel_id}"
+        self.video_count = self.channel['items'][0]['statistics']['videoCount']
+        self.view_count = self.channel['items'][0]['statistics']['viewCount']
+        self.subscriber_count = int(self.channel['items'][0]['statistics']['subscriberCount'])
 
     def print_info(self) -> None:
         """Выводит в консоль информацию о канале."""
@@ -24,10 +30,23 @@ class Channel:
         channel = self.youtube.channels().list(id=self.channel_id, part='snippet,statistics').execute()
         print(json.dumps(channel, indent=2, ensure_ascii=False))
 
-    def get_service(self):
-        """Возвращает объект для работы с YouTube API"""
-        pass
+    @property
+    def channel_id(self):
+        return self.channel_id
 
-    def to_json(self):
+    @channel_id.setter
+    def channel_id(self, value):
+        # self.channel_id = value
+        print("AttributeError: property 'channel_id' of 'Channel' object has no setter")
+
+    @classmethod
+    def get_service(cls):
+        """Возвращает объект для работы с YouTube API"""
+
+        return cls.youtube
+
+    def to_json(self, filename: str):
         """Сохраняет в файл значения атрибутов экземпляра Channel"""
-        pass
+
+        with open(filename, 'w', encoding='utf-8') as file:
+            json.dump(self.__dict__, file, ensure_ascii=False, indent=4)
