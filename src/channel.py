@@ -8,6 +8,7 @@ from settings import ENV_FILE
 
 load_dotenv(ENV_FILE)
 
+
 class Channel:
     """Класс для ютуб-канала"""
     api_key: str = os.getenv('API_KEY')
@@ -22,3 +23,11 @@ class Channel:
 
         channel = self.youtube.channels().list(id=self.channel_id, part='snippet,statistics').execute()
         print(json.dumps(channel, indent=2, ensure_ascii=False))
+
+    def get_service(self):
+        """Возвращает объект для работы с YouTube API"""
+        pass
+
+    def to_json(self):
+        """Сохраняет в файл значения атрибутов экземпляра Channel"""
+        pass
